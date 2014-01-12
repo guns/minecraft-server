@@ -13,7 +13,7 @@ require 'open3'
 
 class Minecraft
   DEFAULTS = {
-    :gamedir => '/srv/games/minecraft',
+    :gamedir => ENV['MINECRAFT_GAMEDIR'] || '/srv/games/minecraft',
     :jar     => nil,
     :world   => nil,
     :memory  => 256,
@@ -66,6 +66,12 @@ class Minecraft
       opt.on '-d', '--debug', 'Keep server process in foreground' do
         @debug = true
       end
+
+      opt.separator <<-BANNER.gsub /^ {8}/, ''
+
+        Environment Variables:
+            MINECRAFT_GAMEDIR    Sets the current gamedir; alternative to --gamedir flag
+      BANNER
     end
   end
 
