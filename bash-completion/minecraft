@@ -1,24 +1,46 @@
 #!/usr/bin/env bash
 
 _minecraft() {
-    local cur prev
-    _get_comp_words_by_ref cur prev
+    local cur="${COMP_WORDS[COMP_CWORD]}" \
+          prev="${COMP_WORDS[COMP_CWORD - 1]}" \
+          reply=() space=1 i
 
     if [[ $cur == -* ]]; then
-        COMPREPLY=($(compgen -W '--jar --world --gamedir --memory --debug --help' -- "$cur"))
-    elif [[ $prev == @(-j|--jar) ]]; then
-        local jars="$(__lstype__ '/srv/games/minecraft' 'File.extname(f) == ".jar" and File.lstat(f).ftype == "file"')"
-        local IFS=$'\n'
-        COMPREPLY=($(compgen -W "$jars" -- "$cur"))
-        unset IFS
-    elif [[ $prev == @(-w|--world) ]]; then
-        local saves="$(__lstype__ -q '/srv/games/minecraft/saves' 'File.ftype(f) == "directory"')"
-        local IFS=$'\n'
-        COMPREPLY=($(compgen -W "$saves" -- "$cur"))
-        unset IFS
+        reply=(--gamedir --jar --world --memory --debug --help)
     elif [[ $prev == @(-g|--gamedir) ]]; then
-        _filedir -d
+        space=0
+        reply=($(compgen -d -- "$cur"))
+        for ((i = 0; i < ${#reply[@]}; ++i)); do
+            reply[i]+='/'
+        done
+    elif [[ $prev == @(-j|--jar) ]]; then
+        space=0
+        local tmp=($(compgen -f -- "$cur"))
+        for ((i = 0; i < ${#tmp[@]}; ++i)); do
+            local path="${tmp[i]}"
+            if [[ -d "$path" ]]; then
+                reply+=("$path/")
+            elif [[ $path == *.jar ]]; then
+                reply+=("$path ")
+            fi
+        done
+    elif [[ $prev == @(-w|--world) ]]; then
+        local IFS=$'\n'
+        reply=($(ruby -r shellwords -e '
+            puts Dir["/srv/games/minecraft/saves/*/*"].map { |d| File.basename d }
+        '))
+    elif [[ $prev == @(-m|--memory) ]]; then
+        for ((i = 1; i <= 16; ++i)); do
+            reply+=($((256 * i)))
+        done
     else
-        COMPREPLY=($(compgen -W 'start stop restart update repl' -- "$cur"))
+        reply=(start stop restart update repl)
     fi
-} && complete -F _minecraft minecraft
+
+    ((space)) && compopt +o nospace
+
+    local IFS=$'\n'
+    COMPREPLY=($(compgen -W "${reply[*]}" -- "$cur"))
+}
+
+complete -F _minecraft -o nospace minecraft
