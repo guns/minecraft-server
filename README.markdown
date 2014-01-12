@@ -21,16 +21,16 @@ Environment Variables:
 
 # Installation
 
-* Install Java and Ruby
+* Install Java, Ruby, and make
 
   On Debian / Ubuntu / Elementary OS, run:
 ```
-sudo sh -c "aptitude update; aptitude install java7-runtime-headless ruby"
+sudo sh -c "aptitude update; aptitude install java7-runtime-headless ruby make"
 ```
 
   On Arch Linux, run:
 ```
-sudo sh -c "pacman -Sy; pacman -Ss jre7-openjdk-headless ruby"
+sudo sh -c "pacman -Sy; pacman -Ss jre7-openjdk-headless ruby make"
 ```
 
 * Run `sudo make install` to install script to `/usr/local/bin` and completion
